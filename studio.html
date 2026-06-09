@@ -15,41 +15,61 @@
 </header>
 
 <main>
-  <input id="gameName" placeholder="Game name">
-  <textarea id="gameDesc" placeholder="Game description"></textarea>
+  <main class="studio-layout">
 
-  <button onclick="addBlock()">Add Block</button>
-  <button onclick="moveBlock(-1,0,0)">⬅️ X</button>
-  <button onclick="moveBlock(1,0,0)">➡️ X</button>
-  <button onclick="moveBlock(0,1,0)">⬆️ Y</button>
-  <button onclick="moveBlock(0,-1,0)">⬇️ Y</button>
-  <button onclick="moveBlock(0,0,-1)">Forward Z</button>
-  <button onclick="moveBlock(0,0,1)">Back Z</button>
+  <div class="sidebar">
 
-  <br><br>
+    <input id="gameName" placeholder="Game name">
 
-  <button onclick="resizeBlock(1,0,0)">Width +</button>
-  <button onclick="resizeBlock(-1,0,0)">Width -</button>
-  <button onclick="resizeBlock(0,1,0)">Height +</button>
-  <button onclick="resizeBlock(0,-1,0)">Height -</button>
-  <button onclick="resizeBlock(0,0,1)">Depth +</button>
-  <button onclick="resizeBlock(0,0,-1)">Depth -</button>
+    <textarea id="gameDesc"
+      placeholder="Game description"></textarea>
 
-  <br><br>
+    <button onclick="addBlock()">➕ Add Block</button>
 
-  <select id="scriptType" onchange="setScript()">
-    <option value="normal">Normal</option>
-    <option value="bounce">Bounce</option>
-    <option value="win">Win</option>
-    <option value="damage">Damage</option>
-  </select>
+    <hr>
 
-  <button onclick="deleteBlock()">Delete Selected</button>
-  <button onclick="publishGame()">Publish Game</button>
+    <button onclick="moveBlock(-1,0,0)">⬅ Move X</button>
+    <button onclick="moveBlock(1,0,0)">➡ Move X</button>
 
-  <p id="msg">Click a block to select it.</p>
+    <button onclick="moveBlock(0,1,0)">⬆ Move Y</button>
+    <button onclick="moveBlock(0,-1,0)">⬇ Move Y</button>
 
-  <div id="viewport" style="width:100%;height:500px;background:#000;"></div>
+    <button onclick="moveBlock(0,0,-1)">Forward Z</button>
+    <button onclick="moveBlock(0,0,1)">Back Z</button>
+
+    <hr>
+
+    <button onclick="resizeBlock(1,0,0)">Width +</button>
+    <button onclick="resizeBlock(-1,0,0)">Width -</button>
+
+    <button onclick="resizeBlock(0,1,0)">Height +</button>
+    <button onclick="resizeBlock(0,-1,0)">Height -</button>
+
+    <button onclick="resizeBlock(0,0,1)">Depth +</button>
+    <button onclick="resizeBlock(0,0,-1)">Depth -</button>
+
+    <hr>
+
+    <select id="scriptType" onchange="setScript()">
+      <option value="normal">Normal</option>
+      <option value="bounce">Bounce</option>
+      <option value="win">Win</option>
+      <option value="damage">Damage</option>
+    </select>
+
+    <button onclick="deleteBlock()">🗑 Delete</button>
+
+    <button onclick="publishGame()">🚀 Publish</button>
+
+    <p id="msg">Click a block to select it.</p>
+
+  </div>
+
+  <div class="viewport">
+    <div id="viewport"></div>
+  </div>
+
+</main>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
