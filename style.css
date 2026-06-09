@@ -20,7 +20,7 @@ nav a {
   border-radius: 8px;
 }
 
-main {
+main:not(.studio-layout) {
   padding: 25px;
 }
 
