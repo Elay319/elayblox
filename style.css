@@ -90,30 +90,41 @@ button {
   cursor: pointer;
 }
 
-.studio-layout{
-    display:flex;
-    height:calc(100vh - 100px);
+.studio-layout {
+  display: flex;
+  height: calc(100vh - 100px);
+  padding: 0;
 }
 
-.sidebar{
-    width:300px;
-    background:#1f2937;
-    padding:15px;
-    overflow-y:auto;
+.sidebar {
+  width: 300px;
+  min-width: 300px;
+  background: #1f2937;
+  padding: 15px;
+  overflow-y: auto;
+  z-index: 5;
 }
 
 .sidebar button,
 .sidebar input,
 .sidebar textarea,
-.sidebar select{
-    width:100%;
-    margin-bottom:10px;
+.sidebar select {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 12px;
 }
 
-.viewport{
-    flex:1;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:#0f172a;
+.viewport {
+  flex: 1;
+  background: #0f172a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+#viewport {
+  width: 100%;
+  height: 500px;
 }
