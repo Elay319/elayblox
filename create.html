@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Create Game</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="play.html">Games</a>
+      <a href="create.html">Create</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="form-box">
+      <input id="name" placeholder="Game name">
+      <textarea id="description" placeholder="Game description"></textarea>
+      <input id="image" placeholder="Image URL https://...">
+      <input id="link" placeholder="Game link https://...">
+      <button onclick="publishGame()">Publish Game</button>
+      <p id="msg"></p>
+    </div>
+  </main>
+
+  <script>
+    const API = "https://elayblox-server.onrender.com";
+
+    async function publishGame() {
+      const game = {
+        name: document.getElementById("name").value,
+        description: document.getElementById("description").value,
+        image: document.getElementById("image").value,
+        link: document.getElementById("link").value
+      };
+
+      const res = await fetch(API + "/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(game)
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        document.getElementById("msg").textContent = "Game published!";
+        setTimeout(() => location.href = "play.html", 800);
+      } else {
+        document.getElementById("msg").textContent = data.error || "Error";
+      }
+    }
+  </script>
+</body>
+</html>
