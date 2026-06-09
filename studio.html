@@ -93,7 +93,8 @@ function init() {
   camera.lookAt(0, 0, 0);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth - 50, 500);
+  const box = document.getElementById("viewport");
+renderer.setSize(box.clientWidth, box.clientHeight);
   document.getElementById("viewport").appendChild(renderer.domElement);
 
   const light = new THREE.DirectionalLight(0xffffff, 1);
