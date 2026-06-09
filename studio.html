@@ -5,87 +5,35 @@
 <title>ElayBlox Studio 3D</title>
 
 <style>
-body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background:#111827;
-    color:white;
-}
+body{margin:0;font-family:Arial;background:#111827;color:white}
+header{background:#1f2937;text-align:center;padding:20px}
+nav a{color:white;text-decoration:none;background:#374151;padding:8px 14px;border-radius:8px;margin:0 5px}
 
-header{
-    background:#1f2937;
-    text-align:center;
-    padding:20px;
+.studio-layout{display:flex;height:calc(100vh - 110px)}
+.sidebar{width:300px;background:#1f2937;padding:15px;overflow-y:auto}
+.sidebar input,.sidebar textarea,.sidebar button,.sidebar select{
+  width:100%;box-sizing:border-box;margin-bottom:10px;padding:10px;border:none;border-radius:8px
 }
-
-nav a{
-    color:white;
-    text-decoration:none;
-    background:#374151;
-    padding:8px 14px;
-    border-radius:8px;
-    margin:0 5px;
-}
-
-.studio-layout{
-    display:flex;
-    height:calc(100vh - 100px);
-}
-
-.sidebar{
-    width:300px;
-    background:#1f2937;
-    padding:15px;
-    overflow-y:auto;
-}
-
-.sidebar input,
-.sidebar textarea,
-.sidebar button,
-.sidebar select{
-    width:100%;
-    box-sizing:border-box;
-    margin-bottom:10px;
-    padding:10px;
-    border:none;
-    border-radius:8px;
-}
-
-.sidebar button{
-    background:#22c55e;
-    cursor:pointer;
-    font-weight:bold;
-}
-
-.viewport{
-    flex:1;
-    background:#0f172a;
-}
-
-#viewport{
-    width:100%;
-    height:100%;
-}
+.sidebar button{background:#22c55e;cursor:pointer;font-weight:bold}
+.viewport{flex:1;background:#0f172a}
+#viewport{width:100%;height:100%}
+hr{border:1px solid #374151}
 </style>
 </head>
+
 <body>
-
 <header>
-    <h1>🧱 ElayBlox Studio 3D</h1>
-
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="play.html">Games</a>
-        <a href="studio.html">Studio</a>
-    </nav>
+  <h1>🧱 ElayBlox Studio 3D</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="play.html">Games</a>
+    <a href="studio.html">Studio</a>
+  </nav>
 </header>
 
 <main class="studio-layout">
-
-<div class="sidebar">
-
+  <div class="sidebar">
     <input id="gameName" placeholder="Game name">
-
     <textarea id="gameDesc" placeholder="Game description"></textarea>
 
     <button onclick="addBlock()">➕ Add Block</button>
@@ -94,38 +42,38 @@ nav a{
 
     <button onclick="moveBlock(-1,0,0)">⬅ Move X</button>
     <button onclick="moveBlock(1,0,0)">➡ Move X</button>
-
     <button onclick="moveBlock(0,1,0)">⬆ Move Y</button>
     <button onclick="moveBlock(0,-1,0)">⬇ Move Y</button>
-
-    <button onclick="moveBlock(0,0,-1)">⬆ Move Z</button>
-    <button onclick="moveBlock(0,0,1)">⬇ Move Z</button>
+    <button onclick="moveBlock(0,0,-1)">Forward Z</button>
+    <button onclick="moveBlock(0,0,1)">Back Z</button>
 
     <hr>
 
     <button onclick="resizeBlock(1,0,0)">Width +</button>
     <button onclick="resizeBlock(-1,0,0)">Width -</button>
-
     <button onclick="resizeBlock(0,1,0)">Height +</button>
     <button onclick="resizeBlock(0,-1,0)">Height -</button>
-
     <button onclick="resizeBlock(0,0,1)">Depth +</button>
     <button onclick="resizeBlock(0,0,-1)">Depth -</button>
 
     <hr>
 
-    <button onclick="deleteBlock()">🗑 Delete Selected</button>
+    <select id="scriptType" onchange="setScript()">
+      <option value="normal">🟩 Normal Block</option>
+      <option value="bounce">🟦 Bounce Block</option>
+      <option value="win">🟨 Win Block</option>
+      <option value="damage">🟥 Damage Block</option>
+    </select>
 
+    <button onclick="deleteBlock()">🗑 Delete Selected</button>
     <button onclick="publishGame()">🚀 Publish Game</button>
 
     <p id="msg">Click a block to select it.</p>
+  </div>
 
-</div>
-
-<div class="viewport">
+  <div class="viewport">
     <div id="viewport"></div>
-</div>
-
+  </div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
@@ -133,12 +81,7 @@ nav a{
 <script>
 const API = "https://elayblox-server.onrender.com";
 
-let scene;
-let camera;
-let renderer;
-let raycaster;
-let mouse;
-
+let scene, camera, renderer, raycaster, mouse;
 let blocks = [];
 let selected = null;
 
@@ -146,294 +89,194 @@ init();
 animate();
 
 function init(){
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87ceeb);
 
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87ceeb);
+  const viewport = document.getElementById("viewport");
 
-    const viewport = document.getElementById("viewport");
+  camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+  camera.position.set(10,10,10);
+  camera.lookAt(0,0,0);
 
-    camera = new THREE.PerspectiveCamera(
-        75,
-        viewport.clientWidth / viewport.clientHeight,
-        0.1,
-        1000
-    );
+  renderer = new THREE.WebGLRenderer({antialias:true});
+  viewport.appendChild(renderer.domElement);
 
-    camera.position.set(10,10,10);
-    camera.lookAt(0,0,0);
+  resizePreview();
+  window.addEventListener("resize", resizePreview);
 
-    renderer = new THREE.WebGLRenderer({antialias:true});
+  const light = new THREE.DirectionalLight(0xffffff,1);
+  light.position.set(10,20,10);
+  scene.add(light);
+  scene.add(new THREE.AmbientLight(0xffffff,0.5));
 
-    renderer.setSize(
-        viewport.clientWidth,
-        viewport.clientHeight
-    );
+  const grid = new THREE.GridHelper(100,100);
+  scene.add(grid);
 
-    viewport.appendChild(renderer.domElement);
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
 
-    const light = new THREE.DirectionalLight(0xffffff,1);
-    light.position.set(10,20,10);
-    scene.add(light);
+  renderer.domElement.addEventListener("click", selectBlock);
+}
 
-    scene.add(new THREE.AmbientLight(0xffffff,0.5));
+function resizePreview(){
+  const viewport = document.getElementById("viewport");
+  const width = viewport.clientWidth || 900;
+  const height = viewport.clientHeight || 500;
 
-    const grid = new THREE.GridHelper(100,100);
-    scene.add(grid);
-
-    raycaster = new THREE.Raycaster();
-    mouse = new THREE.Vector2();
-
-    renderer.domElement.addEventListener(
-        "click",
-        selectBlock
-    );
-
-    window.addEventListener("resize", () => {
-
-        camera.aspect =
-        viewport.clientWidth /
-        viewport.clientHeight;
-
-        camera.updateProjectionMatrix();
-
-        renderer.setSize(
-            viewport.clientWidth,
-            viewport.clientHeight
-        );
-
-    });
-
+  renderer.setSize(width, height);
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
 }
 
 function createMesh(data){
+  const geo = new THREE.BoxGeometry(data.w, data.h, data.d);
+  const mat = new THREE.MeshStandardMaterial({color:data.color});
+  const mesh = new THREE.Mesh(geo,mat);
 
-    const geo =
-    new THREE.BoxGeometry(
-        data.w,
-        data.h,
-        data.d
-    );
+  mesh.position.set(data.x,data.y,data.z);
+  mesh.userData.block = data;
 
-    const mat =
-    new THREE.MeshStandardMaterial({
-        color:data.color
-    });
-
-    const mesh =
-    new THREE.Mesh(geo,mat);
-
-    mesh.position.set(
-        data.x,
-        data.y,
-        data.z
-    );
-
-    mesh.userData.block = data;
-
-    return mesh;
+  return mesh;
 }
 
 function addBlock(){
+  const block = {
+    x:0,
+    y:0.5,
+    z:0,
+    w:4,
+    h:1,
+    d:4,
+    color:"green",
+    script:"normal"
+  };
 
-    const block = {
+  block.mesh = createMesh(block);
+  blocks.push(block);
+  scene.add(block.mesh);
 
-        x:0,
-        y:0.5,
-        z:0,
-
-        w:4,
-        h:1,
-        d:4,
-
-        color:"green"
-    };
-
-    block.mesh = createMesh(block);
-
-    blocks.push(block);
-
-    scene.add(block.mesh);
-
-    selected = block;
-
-    updateSelection();
+  selected = block;
+  updateSelection();
 }
 
 function selectBlock(event){
+  const rect = renderer.domElement.getBoundingClientRect();
 
-    const rect =
-    renderer.domElement.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    mouse.x =
-    ((event.clientX - rect.left) /
-    rect.width) * 2 - 1;
+  raycaster.setFromCamera(mouse,camera);
 
-    mouse.y =
-    -((event.clientY - rect.top) /
-    rect.height) * 2 + 1;
+  const hits = raycaster.intersectObjects(blocks.map(b=>b.mesh));
 
-    raycaster.setFromCamera(
-        mouse,
-        camera
-    );
-
-    const hits =
-    raycaster.intersectObjects(
-        blocks.map(b=>b.mesh)
-    );
-
-    if(hits.length){
-
-        selected =
-        hits[0].object.userData.block;
-
-        updateSelection();
-    }
+  if(hits.length){
+    selected = hits[0].object.userData.block;
+    updateSelection();
+  }
 }
 
 function updateSelection(){
+  blocks.forEach(b=>{
+    b.mesh.material.emissive = new THREE.Color(0x000000);
+  });
 
-    blocks.forEach(b=>{
-
-        b.mesh.material.emissive =
-        new THREE.Color(0x000000);
-
-    });
-
-    if(selected){
-
-        selected.mesh.material.emissive =
-        new THREE.Color(0x333333);
-
-        document.getElementById("msg")
-        .textContent =
-        "Selected block";
-    }
+  if(selected){
+    selected.mesh.material.emissive = new THREE.Color(0x333333);
+    document.getElementById("scriptType").value = selected.script;
+    document.getElementById("msg").textContent =
+      "Selected block | " + selected.script;
+  }
 }
 
 function moveBlock(dx,dy,dz){
+  if(!selected) return;
 
-    if(!selected) return;
+  selected.x += dx;
+  selected.y += dy;
+  selected.z += dz;
 
-    selected.x += dx;
-    selected.y += dy;
-    selected.z += dz;
-
-    selected.mesh.position.set(
-        selected.x,
-        selected.y,
-        selected.z
-    );
+  selected.mesh.position.set(selected.x,selected.y,selected.z);
 }
 
 function resizeBlock(dw,dh,dd){
+  if(!selected) return;
 
-    if(!selected) return;
+  selected.w = Math.max(1,selected.w + dw);
+  selected.h = Math.max(1,selected.h + dh);
+  selected.d = Math.max(1,selected.d + dd);
 
-    selected.w =
-    Math.max(1, selected.w + dw);
+  scene.remove(selected.mesh);
+  selected.mesh = createMesh(selected);
+  scene.add(selected.mesh);
 
-    selected.h =
-    Math.max(1, selected.h + dh);
+  updateSelection();
+}
 
-    selected.d =
-    Math.max(1, selected.d + dd);
+function setScript(){
+  if(!selected) return;
 
-    scene.remove(selected.mesh);
+  selected.script = document.getElementById("scriptType").value;
 
-    selected.mesh =
-    createMesh(selected);
+  if(selected.script === "normal") selected.color = "green";
+  if(selected.script === "bounce") selected.color = "blue";
+  if(selected.script === "win") selected.color = "yellow";
+  if(selected.script === "damage") selected.color = "red";
 
-    scene.add(selected.mesh);
+  scene.remove(selected.mesh);
+  selected.mesh = createMesh(selected);
+  scene.add(selected.mesh);
 
-    updateSelection();
+  updateSelection();
 }
 
 function deleteBlock(){
+  if(!selected) return;
 
-    if(!selected) return;
+  scene.remove(selected.mesh);
+  blocks = blocks.filter(b => b !== selected);
+  selected = null;
 
-    scene.remove(selected.mesh);
-
-    blocks =
-    blocks.filter(
-        b => b !== selected
-    );
-
-    selected = null;
+  document.getElementById("msg").textContent = "Deleted block.";
 }
 
 async function publishGame(){
+  const saveBlocks = blocks.map(b => ({
+    x:b.x,
+    y:b.y,
+    z:b.z,
+    w:b.w,
+    h:b.h,
+    d:b.d,
+    color:b.color,
+    script:b.script
+  }));
 
-    const saveBlocks =
-    blocks.map(b => ({
+  const game = {
+    name:document.getElementById("gameName").value,
+    description:document.getElementById("gameDesc").value,
+    blocks:saveBlocks
+  };
 
-        x:b.x,
-        y:b.y,
-        z:b.z,
+  const res = await fetch(API + "/publish-block-game", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(game)
+  });
 
-        w:b.w,
-        h:b.h,
-        d:b.d,
+  const data = await res.json();
 
-        color:b.color
-
-    }));
-
-    const game = {
-
-        name:
-        document.getElementById(
-        "gameName").value,
-
-        description:
-        document.getElementById(
-        "gameDesc").value,
-
-        blocks:saveBlocks
-    };
-
-    const res =
-    await fetch(
-    API + "/publish-block-game",
-    {
-        method:"POST",
-        headers:{
-            "Content-Type":
-            "application/json"
-        },
-        body:JSON.stringify(game)
-    });
-
-    const data =
-    await res.json();
-
-    if(data.success){
-
-        document.getElementById(
-        "msg").innerHTML =
-        "Published!";
-    }
-    else{
-
-        document.getElementById(
-        "msg").textContent =
-        data.error || "Error";
-    }
+  if(data.success){
+    document.getElementById("msg").innerHTML =
+      `Published! <a style="color:white" href="${data.playUrl}" target="_blank">Play</a>`;
+  } else {
+    document.getElementById("msg").textContent = data.error || "Error";
+  }
 }
 
 function animate(){
-
-    requestAnimationFrame(
-        animate
-    );
-
-    renderer.render(
-        scene,
-        camera
-    );
+  requestAnimationFrame(animate);
+  renderer.render(scene,camera);
 }
 </script>
-
 </body>
 </html>
