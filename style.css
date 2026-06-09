@@ -89,3 +89,31 @@ button {
   font-weight: bold;
   cursor: pointer;
 }
+
+.studio-layout{
+    display:flex;
+    height:calc(100vh - 100px);
+}
+
+.sidebar{
+    width:300px;
+    background:#1f2937;
+    padding:15px;
+    overflow-y:auto;
+}
+
+.sidebar button,
+.sidebar input,
+.sidebar textarea,
+.sidebar select{
+    width:100%;
+    margin-bottom:10px;
+}
+
+.viewport{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#0f172a;
+}
