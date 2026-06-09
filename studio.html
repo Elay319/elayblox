@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ElayBlox Studio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>🧱 ElayBlox Studio</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="play.html">Games</a>
+    <a href="studio.html">Studio</a>
+  </nav>
+</header>
+
+<main>
+  <input id="gameName" placeholder="Game name">
+  <textarea id="gameDesc" placeholder="Game description"></textarea>
+
+  <button onclick="addBlock()">Add Block</button>
+  <button onclick="saveGame()">Publish Game</button>
+
+  <canvas id="world" width="800" height="450"></canvas>
+  <p id="msg"></p>
+</main>
+
+<script>
+const API = "https://elayblox-server.onrender.com";
+const canvas = document.getElementById("world");
+const ctx = canvas.getContext("2d");
+
+let blocks = [];
+
+function addBlock() {
+  blocks.push({
+    x: 100 + blocks.length * 40,
+    y: 300,
+    w: 120,
+    h: 30,
+    color: "green"
+  });
+  draw();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#87ceeb";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  blocks.forEach(b => {
+    ctx.fillStyle = b.color;
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+  });
+}
+
+async function saveGame() {
+  const game = {
+    name: document.getElementById("gameName").value,
+    description: document.getElementById("gameDesc").value,
+    image: "https://picsum.photos/300/180",
+    blocks: blocks
+  };
+
+  const res = await fetch(API + "/publish-block-game", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(game)
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    document.getElementById("msg").textContent = "Game published!";
+  } else {
+    document.getElementById("msg").textContent = data.error || "Error";
+  }
+}
+
+draw();
+</script>
+</body>
+</html>
