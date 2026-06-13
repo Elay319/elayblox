@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ElayBlox Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>ElayBlox Account</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="play.html">Games</a>
+    <a href="studio.html">Studio</a>
+    <a href="login.html">Login</a>
+  </nav>
+</header>
+
+<main>
+  <div class="form-box">
+    <h2>Register</h2>
+    <input id="regUser" placeholder="Username">
+    <input id="regPass" type="password" placeholder="Password">
+    <button onclick="register()">Register</button>
+
+    <hr>
+
+    <h2>Login</h2>
+    <input id="logUser" placeholder="Username">
+    <input id="logPass" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+
+    <p id="msg"></p>
+  </div>
+</main>
+
+<script>
+const API = "https://elayblox-server.onrender.com";
+
+async function register() {
+  const res = await fetch(API + "/register", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      username: document.getElementById("regUser").value,
+      password: document.getElementById("regPass").value
+    })
+  });
+
+  const data = await res.json();
+  document.getElementById("msg").textContent = data.error || "Registered!";
+}
+
+async function login() {
+  const res = await fetch(API + "/login", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      username: document.getElementById("logUser").value,
+      password: document.getElementById("logPass").value
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    localStorage.setItem("elaybloxUser", JSON.stringify(data.user));
+    document.getElementById("msg").textContent = "Logged in as " + data.user.username;
+  } else {
+    document.getElementById("msg").textContent = data.error || "Login failed";
+  }
+}
+</script>
+</body>
+</html>
