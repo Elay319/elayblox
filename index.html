@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ElayBlox</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>ElayBlox</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <div id="accountBar"></div>
 
 <header>
   <h1>🎮 ElayBlox</h1>
+
   <nav>
     <a href="index.html">Home</a>
     <a href="play.html">Games</a>
@@ -19,36 +22,77 @@
 </header>
 
 <main>
+
   <section class="hero">
     <h2>Make and play 3D block games</h2>
-    <p>Create games with blocks, resize them, and add actions like bounce, damage, and win.</p>
-    <a class="big-btn" href="studio.html">Open Studio</a>
+
+    <p>
+      Create games with blocks,
+      resize them,
+      add bounce blocks,
+      win blocks,
+      damage blocks,
+      and more.
+    </p>
+
+    <a class="play-btn" href="studio.html">
+      🚀 Open Studio
+    </a>
   </section>
 
+  <hr>
+
   <h2>Newest Games</h2>
-  <div id="games" class="games-grid"></div>
+
+  <div id="games" class="games-grid">
+    Loading games...
+  </div>
+
 </main>
 
-<script src="games.js"></script>
-
 <script>
-const user = JSON.parse(localStorage.getItem("elaybloxUser"));
-const accountBar = document.getElementById("accountBar");
+const user =
+JSON.parse(
+localStorage.getItem(
+"elaybloxUser"
+));
 
-if (user) {
-  accountBar.innerHTML =
-    'Logged in as <b>' + user.username +
-    '</b> <button onclick="logout()">Logout</button>';
-} else {
-  accountBar.innerHTML =
-    '<a href="login.html">Login</a>';
+const accountBar =
+document.getElementById(
+"accountBar"
+);
+
+if(user){
+
+  accountBar.innerHTML = `
+    Logged in as
+    <b>${user.username}</b>
+
+    <button onclick="logout()">
+      Logout
+    </button>
+  `;
+
+}else{
+
+  accountBar.innerHTML = `
+    <a href="login.html">
+      Login
+    </a>
+  `;
 }
 
-function logout() {
-  localStorage.removeItem("elaybloxUser");
+function logout(){
+
+  localStorage.removeItem(
+    "elaybloxUser"
+  );
+
   location.reload();
 }
 </script>
+
+<script src="games.js"></script>
 
 </body>
 </html>
