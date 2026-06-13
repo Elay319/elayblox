@@ -9,24 +9,53 @@ async function loadGames() {
     const games = await res.json();
 
     if (games.length === 0) {
-      container.innerHTML = "<p>No games yet. Be the first to create one!</p>";
+      container.innerHTML =
+        "<p>No games yet. Be the first to create one!</p>";
       return;
     }
 
     container.innerHTML = "";
 
+    const user =
+      JSON.parse(
+        localStorage.getItem("elaybloxUser") || "null"
+      );
+
+    const username =
+      user
+        ? encodeURIComponent(user.username)
+        : "Guest";
+
     games.forEach(game => {
+
+      const playLink =
+        game.link +
+        "?username=" +
+        username;
+
       container.innerHTML += `
         <div class="game-card">
           <img src="${game.image}">
           <h3>${game.name}</h3>
           <p>${game.description}</p>
-          <a class="play-btn" href="${game.link}" target="_blank">Play</a>
+          <p><b>Creator:</b> ${game.creator || "Unknown"}</p>
+
+          <a
+            class="play-btn"
+            href="${playLink}"
+            target="_blank"
+          >
+            Play
+          </a>
         </div>
       `;
     });
+
   } catch (err) {
-    container.innerHTML = "<p>Could not load games. Server may be sleeping.</p>";
+    console.error(err);
+
+    container.innerHTML =
+      "<p>Could not load games. Server may be sleeping.</p>";
   }
 }
 
