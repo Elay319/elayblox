@@ -1,3 +1,4 @@
+```js
 const API = "https://elayblox-server.onrender.com";
 const container = document.getElementById("games");
 
@@ -26,19 +27,32 @@ async function loadGames() {
         ? encodeURIComponent(user.username)
         : "Guest";
 
+    const avatar =
+      user && user.avatar
+        ? encodeURIComponent(user.avatar)
+        : "";
+
     games.forEach(game => {
 
       const playLink =
         game.link +
         "?username=" +
-        username;
+        username +
+        "&avatar=" +
+        avatar;
 
       container.innerHTML += `
         <div class="game-card">
           <img src="${game.image}">
+
           <h3>${game.name}</h3>
+
           <p>${game.description}</p>
-          <p><b>Creator:</b> ${game.creator || "Unknown"}</p>
+
+          <p>
+            <b>Creator:</b>
+            ${game.creator || "Unknown"}
+          </p>
 
           <a
             class="play-btn"
@@ -60,3 +74,4 @@ async function loadGames() {
 }
 
 loadGames();
+```
