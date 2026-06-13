@@ -21,9 +21,7 @@
 </header>
 
 <main>
-
   <div class="form-box">
-
     <h2 id="username">Loading...</h2>
 
     <img
@@ -31,13 +29,7 @@
       src=""
       width="128"
       height="128"
-      style="
-      display:block;
-      margin:auto;
-      border-radius:12px;
-      object-fit:cover;
-      background:#374151;
-      "
+      style="display:block;margin:auto;border-radius:12px;object-fit:cover;background:#374151;"
     >
 
     <br>
@@ -48,99 +40,75 @@
       accept="image/png,image/jpeg,image/webp"
     >
 
+    <button onclick="uploadAvatar()">Upload Avatar</button>
+
     <p id="userId"></p>
+    <p id="msg"></p>
 
-    <button onclick="logout()">
-      Logout
-    </button>
-
+    <button onclick="logout()">Logout</button>
   </div>
-
 </main>
 
 <script>
+const API = "https://elayblox-server.onrender.com";
 
-const user =
-JSON.parse(
-localStorage.getItem(
-"elaybloxUser"
-));
+let user = JSON.parse(localStorage.getItem("elaybloxUser"));
 
-if(!user){
-  location.href =
-  "login.html";
+if (!user) {
+  location.href = "login.html";
 }
 
-document.getElementById(
-"username"
-).textContent =
-user.username;
+document.getElementById("username").textContent = user.username;
+document.getElementById("userId").textContent = "User ID: " + user.id;
 
-document.getElementById(
-"userId"
-).textContent =
-"User ID: " +
-user.id;
+const avatarPreview = document.getElementById("avatarPreview");
 
-const avatarPreview =
-document.getElementById(
-"avatarPreview"
-);
-
-const savedAvatar =
-localStorage.getItem(
-"elaybloxAvatar"
-);
-
-if(savedAvatar){
-  avatarPreview.src =
-  savedAvatar;
+if (user.avatar) {
+  avatarPreview.src = user.avatar;
 }
 
-document
-.getElementById(
-"avatarUpload"
-)
-.addEventListener(
-"change",
-e => {
+async function uploadAvatar() {
+  const fileInput = document.getElementById("avatarUpload");
+  const file = fileInput.files[0];
 
-  const file =
-  e.target.files[0];
+  if (!file) {
+    document.getElementById("msg").textContent = "Choose an image first.";
+    return;
+  }
 
-  if(!file) return;
+  const formData = new FormData();
+  formData.append("avatar", file);
+  formData.append("userId", user.id);
 
-  const reader =
-  new FileReader();
+  document.getElementById("msg").textContent = "Uploading...";
 
-  reader.onload =
-  () => {
+  const res = await fetch(API + "/upload-avatar", {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    user.avatar = data.avatar;
 
     localStorage.setItem(
-      "elaybloxAvatar",
-      reader.result
+      "elaybloxUser",
+      JSON.stringify(user)
     );
 
-    avatarPreview.src =
-    reader.result;
-  };
-
-  reader.readAsDataURL(
-    file
-  );
-
-});
-
-function logout(){
-
-  localStorage.removeItem(
-    "elaybloxUser"
-  );
-
-  location.href =
-  "login.html";
+    avatarPreview.src = data.avatar;
+    document.getElementById("msg").textContent = "Avatar uploaded!";
+  } else {
+    document.getElementById("msg").textContent =
+      data.error || "Upload failed";
+  }
 }
 
+function logout() {
+  localStorage.removeItem("elaybloxUser");
+  location.href = "login.html";
+}
 </script>
 
 </body>
