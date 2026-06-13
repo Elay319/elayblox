@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ElayBlox Profile</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>👤 My Profile</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="play.html">Games</a>
+    <a href="studio.html">Studio</a>
+    <a href="profile.html">Profile</a>
+    <a href="login.html">Login</a>
+  </nav>
+</header>
+
+<main>
+  <div class="form-box">
+    <h2 id="username">Loading...</h2>
+
+    <div id="avatarBox">🙂</div>
+
+    <p id="userId"></p>
+
+    <button onclick="logout()">Logout</button>
+  </div>
+</main>
+
+<script>
+const user = JSON.parse(localStorage.getItem("elaybloxUser"));
+
+if (!user) {
+  location.href = "login.html";
+}
+
+document.getElementById("username").textContent = user.username;
+document.getElementById("userId").textContent = "User ID: " + user.id;
+
+function logout() {
+  localStorage.removeItem("elaybloxUser");
+  location.href = "login.html";
+}
+</script>
+
+</body>
+</html>
