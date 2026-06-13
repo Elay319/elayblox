@@ -47,7 +47,18 @@ async function register() {
   });
 
   const data = await res.json();
-  document.getElementById("msg").textContent = data.error || "Registered!";
+
+  if (data.success) {
+    localStorage.setItem(
+      "elaybloxUser",
+      JSON.stringify(data.user)
+    );
+
+    location.href = "index.html";
+  } else {
+    document.getElementById("msg").textContent =
+      data.error || "Register failed";
+  }
 }
 
 async function login() {
@@ -63,10 +74,15 @@ async function login() {
   const data = await res.json();
 
   if (data.success) {
-    localStorage.setItem("elaybloxUser", JSON.stringify(data.user));
-    document.getElementById("msg").textContent = "Logged in as " + data.user.username;
+    localStorage.setItem(
+      "elaybloxUser",
+      JSON.stringify(data.user)
+    );
+
+    location.href = "index.html";
   } else {
-    document.getElementById("msg").textContent = data.error || "Login failed";
+    document.getElementById("msg").textContent =
+      data.error || "Login failed";
   }
 }
 </script>
