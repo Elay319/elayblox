@@ -3,9 +3,11 @@
 <head>
   <title>ElayBlox</title>
   <link rel="stylesheet" href="style.css">
-  <div id="accountBar"></div>
 </head>
 <body>
+
+<div id="accountBar"></div>
+
 <header>
   <h1>🎮 ElayBlox</h1>
   <nav>
@@ -28,5 +30,25 @@
 </main>
 
 <script src="games.js"></script>
+
+<script>
+const user = JSON.parse(localStorage.getItem("elaybloxUser"));
+const accountBar = document.getElementById("accountBar");
+
+if (user) {
+  accountBar.innerHTML =
+    'Logged in as <b>' + user.username +
+    '</b> <button onclick="logout()">Logout</button>';
+} else {
+  accountBar.innerHTML =
+    '<a href="login.html">Login</a>';
+}
+
+function logout() {
+  localStorage.removeItem("elaybloxUser");
+  location.reload();
+}
+</script>
+
 </body>
 </html>
