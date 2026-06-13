@@ -47,11 +47,6 @@ async function register() {
   });
 
   const data = await res.json();
-alert(JSON.stringify(data));
-  if (data.success) {
-    localStorage.setItem(
-      "elaybloxUser",
-      JSON.stringify(data.user)
     );
 
     location.href = "index.html";
