@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>ElayBlox Profile</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>My Profile - ElayBlox</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <header>
   <h1>👤 My Profile</h1>
+
   <nav>
     <a href="index.html">Home</a>
     <a href="play.html">Games</a>
@@ -19,47 +21,127 @@
 </header>
 
 <main>
+
   <div class="form-box">
+
     <h2 id="username">Loading...</h2>
 
-    <div id="avatarBox">🙂</div>
+    <img
+      id="avatarPreview"
+      src=""
+      width="128"
+      height="128"
+      style="
+      display:block;
+      margin:auto;
+      border-radius:12px;
+      object-fit:cover;
+      background:#374151;
+      "
+    >
+
+    <br>
+
+    <input
+      type="file"
+      id="avatarUpload"
+      accept="image/png,image/jpeg,image/webp"
+    >
 
     <p id="userId"></p>
 
-    <button onclick="logout()">Logout</button>
+    <button onclick="logout()">
+      Logout
+    </button>
+
   </div>
+
 </main>
 
 <script>
-const user = JSON.parse(localStorage.getItem("elaybloxUser"));
 
-if (!user) {
-  location.href = "login.html";
+const user =
+JSON.parse(
+localStorage.getItem(
+"elaybloxUser"
+));
+
+if(!user){
+  location.href =
+  "login.html";
 }
 
-document.getElementById("username").textContent = user.username;
-document.getElementById("userId").textContent = "User ID: " + user.id;
+document.getElementById(
+"username"
+).textContent =
+user.username;
 
-function logout() {
-  localStorage.removeItem("elaybloxUser");
-  location.href = "login.html";
+document.getElementById(
+"userId"
+).textContent =
+"User ID: " +
+user.id;
+
+const avatarPreview =
+document.getElementById(
+"avatarPreview"
+);
+
+const savedAvatar =
+localStorage.getItem(
+"elaybloxAvatar"
+);
+
+if(savedAvatar){
+  avatarPreview.src =
+  savedAvatar;
 }
+
+document
+.getElementById(
+"avatarUpload"
+)
+.addEventListener(
+"change",
+e => {
+
+  const file =
+  e.target.files[0];
+
+  if(!file) return;
+
+  const reader =
+  new FileReader();
+
+  reader.onload =
+  () => {
+
+    localStorage.setItem(
+      "elaybloxAvatar",
+      reader.result
+    );
+
+    avatarPreview.src =
+    reader.result;
+  };
+
+  reader.readAsDataURL(
+    file
+  );
+
+});
+
+function logout(){
+
+  localStorage.removeItem(
+    "elaybloxUser"
+  );
+
+  location.href =
+  "login.html";
+}
+
 </script>
-
-  <h3>Avatar</h3>
-
-<input
-  type="file"
-  id="avatarUpload"
-  accept="image/png,image/jpeg"
->
-
-<img
-  id="avatarPreview"
-  width="128"
-  height="128"
-  style="display:block;margin:auto;border-radius:12px;"
->
 
 </body>
 </html>
