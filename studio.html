@@ -8,7 +8,6 @@
 body{margin:0;font-family:Arial;background:#111827;color:white}
 header{background:#1f2937;text-align:center;padding:20px}
 nav a{color:white;text-decoration:none;background:#374151;padding:8px 14px;border-radius:8px;margin:0 5px}
-
 .studio-layout{display:flex;height:calc(100vh - 110px)}
 .sidebar{width:300px;background:#1f2937;padding:15px;overflow-y:auto}
 .sidebar input,.sidebar textarea,.sidebar button,.sidebar select{
@@ -58,20 +57,22 @@ hr{border:1px solid #374151}
     <button onclick="resizeBlock(0,0,-1)">Depth -</button>
 
     <hr>
-<select id="scriptType" onchange="setScript()">
-  <option value="normal">🟩 Normal Block</option>
-  <option value="bounce">🟦 Bounce Block</option>
-  <option value="win">🟨 Win Block</option>
-  <option value="damage">🟥 Damage Block</option>
-  <option value="speed">🟪 Speed Block</option>
-  <option value="teleport">🟧 Teleport Block</option>
-  <option value="checkpoint">🟫 Checkpoint Block</option>
-  <option value="coin">🪙 Coin Block</option>
-  <option value="kill">☠️ Kill Block</option>
-</select>
+
+    <select id="scriptType" onchange="setScript()">
+      <option value="normal">🟩 Normal Block</option>
+      <option value="bounce">🟦 Bounce Block</option>
+      <option value="win">🟨 Win Block</option>
+      <option value="damage">🟥 Damage Block</option>
+      <option value="speed">🟪 Speed Block</option>
+      <option value="teleport">🟧 Teleport Block</option>
+      <option value="checkpoint">🟫 Checkpoint Block</option>
+      <option value="coin">🪙 Coin Block</option>
+      <option value="kill">☠️ Kill Block</option>
+    </select>
 
     <button onclick="deleteBlock()">🗑 Delete Selected</button>
     <button onclick="publishGame()">🚀 Publish Game</button>
+    <button onclick="clearStudioSave()">🧹 Clear Local Save</button>
 
     <p id="msg">Click a block to select it.</p>
   </div>
@@ -92,6 +93,10 @@ let selected = null;
 
 init();
 animate();
+loadStudioLocal();
+
+document.getElementById("gameName").addEventListener("input", saveStudioLocal);
+document.getElementById("gameDesc").addEventListener("input", saveStudioLocal);
 
 function init(){
   scene = new THREE.Scene();
@@ -153,7 +158,8 @@ function addBlock(){
     h:1,
     d:4,
     color:"green",
-    script:"normal"
+    script:"normal",
+    tpTarget:null
   };
 
   block.mesh = createMesh(block);
@@ -162,6 +168,7 @@ function addBlock(){
 
   selected = block;
   updateSelection();
+  saveStudioLocal();
 }
 
 function selectBlock(event){
@@ -201,6 +208,7 @@ function moveBlock(dx,dy,dz){
   selected.z += dz;
 
   selected.mesh.position.set(selected.x,selected.y,selected.z);
+  saveStudioLocal();
 }
 
 function resizeBlock(dw,dh,dd){
@@ -215,6 +223,7 @@ function resizeBlock(dw,dh,dd){
   scene.add(selected.mesh);
 
   updateSelection();
+  saveStudioLocal();
 }
 
 function setScript(){
@@ -237,6 +246,7 @@ function setScript(){
   scene.add(selected.mesh);
 
   updateSelection();
+  saveStudioLocal();
 }
 
 function deleteBlock(){
@@ -247,6 +257,7 @@ function deleteBlock(){
   selected = null;
 
   document.getElementById("msg").textContent = "Deleted block.";
+  saveStudioLocal();
 }
 
 async function publishGame(){
@@ -258,12 +269,16 @@ async function publishGame(){
     h:b.h,
     d:b.d,
     color:b.color,
-    script:b.script
+    script:b.script,
+    tpTarget:b.tpTarget || null
   }));
+
+  const user = JSON.parse(localStorage.getItem("elaybloxUser") || "null");
 
   const game = {
     name:document.getElementById("gameName").value,
     description:document.getElementById("gameDesc").value,
+    creator:user ? user.username : "Unknown",
     blocks:saveBlocks
   };
 
@@ -277,10 +292,53 @@ async function publishGame(){
 
   if(data.success){
     document.getElementById("msg").innerHTML =
-      `Published! <a style="color:white" href="${data.playUrl}" target="_blank">Play</a>`;
+      \`Published! <a style="color:white" href="\${data.playUrl}" target="_blank">Play</a>\`;
   } else {
     document.getElementById("msg").textContent = data.error || "Error";
   }
+}
+
+function saveStudioLocal() {
+  const saveBlocks = blocks.map(b => ({
+    x:b.x,
+    y:b.y,
+    z:b.z,
+    w:b.w,
+    h:b.h,
+    d:b.d,
+    color:b.color,
+    script:b.script,
+    tpTarget:b.tpTarget || null
+  }));
+
+  localStorage.setItem("elaybloxStudioSave", JSON.stringify({
+    name: document.getElementById("gameName").value,
+    description: document.getElementById("gameDesc").value,
+    blocks: saveBlocks
+  }));
+}
+
+function loadStudioLocal() {
+  const saved = localStorage.getItem("elaybloxStudioSave");
+  if (!saved) return;
+
+  const data = JSON.parse(saved);
+
+  document.getElementById("gameName").value = data.name || "";
+  document.getElementById("gameDesc").value = data.description || "";
+
+  if (Array.isArray(data.blocks)) {
+    data.blocks.forEach(block => {
+      block.mesh = createMesh(block);
+      blocks.push(block);
+      scene.add(block.mesh);
+    });
+  }
+}
+
+function clearStudioSave() {
+  localStorage.removeItem("elaybloxStudioSave");
+  location.reload();
 }
 
 function animate(){
