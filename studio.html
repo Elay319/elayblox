@@ -58,13 +58,17 @@ hr{border:1px solid #374151}
     <button onclick="resizeBlock(0,0,-1)">Depth -</button>
 
     <hr>
-
-    <select id="scriptType" onchange="setScript()">
-      <option value="normal">🟩 Normal Block</option>
-      <option value="bounce">🟦 Bounce Block</option>
-      <option value="win">🟨 Win Block</option>
-      <option value="damage">🟥 Damage Block</option>
-    </select>
+<select id="scriptType" onchange="setScript()">
+  <option value="normal">🟩 Normal Block</option>
+  <option value="bounce">🟦 Bounce Block</option>
+  <option value="win">🟨 Win Block</option>
+  <option value="damage">🟥 Damage Block</option>
+  <option value="speed">🟪 Speed Block</option>
+  <option value="teleport">🟧 Teleport Block</option>
+  <option value="checkpoint">🟫 Checkpoint Block</option>
+  <option value="coin">🪙 Coin Block</option>
+  <option value="kill">☠️ Kill Block</option>
+</select>
 
     <button onclick="deleteBlock()">🗑 Delete Selected</button>
     <button onclick="publishGame()">🚀 Publish Game</button>
