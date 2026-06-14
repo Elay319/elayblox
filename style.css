@@ -140,3 +140,27 @@ button {
   font-size: 48px;
   margin: 20px auto;
 }
+
+#chatBox {
+  position: fixed;
+  right: 10px;
+  bottom: 100px;
+  width: 260px;
+  height: 220px;
+  background: rgba(0,0,0,0.55);
+  border-radius: 10px;
+  padding: 10px;
+  z-index: 30;
+}
+
+#chatMessages {
+  height: 170px;
+  overflow-y: auto;
+  font-size: 14px;
+}
+
+#chatInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+}
