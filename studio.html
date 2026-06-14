@@ -226,6 +226,11 @@ function setScript(){
   if(selected.script === "bounce") selected.color = "blue";
   if(selected.script === "win") selected.color = "yellow";
   if(selected.script === "damage") selected.color = "red";
+  if(selected.script === "speed") selected.color = "purple";
+  if(selected.script === "teleport") selected.color = "orange";
+  if(selected.script === "checkpoint") selected.color = "brown";
+  if(selected.script === "coin") selected.color = "gold";
+  if(selected.script === "kill") selected.color = "black";
 
   scene.remove(selected.mesh);
   selected.mesh = createMesh(selected);
