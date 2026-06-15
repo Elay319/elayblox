@@ -292,7 +292,7 @@ async function publishGame(){
 
   if(data.success){
     document.getElementById("msg").innerHTML =
-      \`Published! <a style="color:white" href="\${data.playUrl}" target="_blank">Play</a>\`;
+      `Published! <a style="color:white" href="${data.playUrl}" target="_blank">Play</a>`;
   } else {
     document.getElementById("msg").textContent = data.error || "Error";
   }
