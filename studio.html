@@ -69,6 +69,11 @@ hr{border:1px solid #374151}
 
     <hr>
 
+    <hr>
+<h3>JSBlocks Editor</h3>
+<textarea id="scriptEditor" placeholder="Select a JSBlock script..." style="height:160px"></textarea>
+<button onclick="saveSelectedScript()">💾 Save Script</button>
+
     <select id="scriptType" onchange="setScript()">
       <option value="normal">🟩 Normal Block</option>
       <option value="bounce">🟦 Bounce Block</option>
@@ -102,6 +107,7 @@ const API = "https://elayblox-server.onrender.com";
 let scene, camera, renderer, raycaster, mouse;
 let blocks = [];
 let selected = null;
+let selectedScript = null;
 
 init();
 animate();
@@ -279,12 +285,14 @@ function updateExplorer(){
         s.style.cursor = "pointer";
         s.textContent = "📄 " + script.name;
 
-        s.onclick = () => {
-          selected = b;
-          updateSelection();
-          document.getElementById("msg").textContent =
-            "Selected script: " + script.name + " on " + b.name;
-        };
+s.onclick = () => {
+  selected = b;
+  selectedScript = script;
+  updateSelection();
+  document.getElementById("scriptEditor").value = script.code || "";
+  document.getElementById("msg").textContent =
+    "Editing script: " + script.name;
+};
 
         explorer.appendChild(s);
       });
@@ -292,6 +300,17 @@ function updateExplorer(){
   });
 }
 
+  function saveSelectedScript(){
+  if(!selectedScript) {
+    document.getElementById("msg").textContent = "Select a script first.";
+    return;
+  }
+
+  selectedScript.code = document.getElementById("scriptEditor").value.slice(0, 2000);
+  document.getElementById("msg").textContent = "Saved JSBlocks script.";
+  saveStudioLocal();
+}
+  
 function addScriptToSelected(){
   if(!selected) {
     document.getElementById("msg").textContent = "Select an object first.";
