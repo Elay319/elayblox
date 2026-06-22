@@ -9,7 +9,7 @@ body{margin:0;font-family:Arial;background:#111827;color:white}
 header{background:#1f2937;text-align:center;padding:20px}
 nav a{color:white;text-decoration:none;background:#374151;padding:8px 14px;border-radius:8px;margin:0 5px}
 .studio-layout{display:flex;height:calc(100vh - 110px)}
-.sidebar{width:300px;background:#1f2937;padding:15px;overflow-y:auto}
+.sidebar{width:330px;background:#1f2937;padding:15px;overflow-y:auto}
 .sidebar input,.sidebar textarea,.sidebar button,.sidebar select{
   width:100%;box-sizing:border-box;margin-bottom:10px;padding:10px;border:none;border-radius:8px
 }
@@ -17,6 +17,7 @@ nav a{color:white;text-decoration:none;background:#374151;padding:8px 14px;borde
 .viewport{flex:1;background:#0f172a}
 #viewport{width:100%;height:100%}
 hr{border:1px solid #374151}
+#explorer{background:#111827;padding:8px;border-radius:8px;font-size:14px;min-height:80px}
 </style>
 </head>
 
@@ -27,7 +28,8 @@ hr{border:1px solid #374151}
     <a href="index.html">Home</a>
     <a href="play.html">Games</a>
     <a href="studio.html">Studio</a>
-    <a href="login.html">Login</a>
+    <a href="profile.html">Profile</a>
+    <a href="login.html" id="loginLink">Login</a>
   </nav>
 </header>
 
@@ -37,6 +39,15 @@ hr{border:1px solid #374151}
     <textarea id="gameDesc" placeholder="Game description"></textarea>
 
     <button onclick="addBlock()">➕ Add Block</button>
+    <button onclick="addObject('button')">🔘 Add Button</button>
+    <button onclick="addObject('seat')">💺 Add Seat</button>
+    <button onclick="addObject('spawn')">⭐ Add Spawn</button>
+    <button onclick="addScriptToSelected()">📄 Add JSBlock Script</button>
+
+    <hr>
+
+    <h3>Explorer</h3>
+    <div id="explorer"></div>
 
     <hr>
 
@@ -68,13 +79,14 @@ hr{border:1px solid #374151}
       <option value="checkpoint">🟫 Checkpoint Block</option>
       <option value="coin">🪙 Coin Block</option>
       <option value="kill">☠️ Kill Block</option>
+      <option value="spawn">⭐ Spawn Block</option>
     </select>
 
     <button onclick="deleteBlock()">🗑 Delete Selected</button>
     <button onclick="publishGame()">🚀 Publish Game</button>
     <button onclick="clearStudioSave()">🧹 Clear Local Save</button>
 
-    <p id="msg">Click a block to select it.</p>
+    <p id="msg">Click an object to select it.</p>
   </div>
 
   <div class="viewport">
@@ -94,9 +106,17 @@ let selected = null;
 init();
 animate();
 loadStudioLocal();
+updateExplorer();
 
 document.getElementById("gameName").addEventListener("input", saveStudioLocal);
 document.getElementById("gameDesc").addEventListener("input", saveStudioLocal);
+
+const navUser = JSON.parse(localStorage.getItem("elaybloxUser") || "null");
+const loginLink = document.getElementById("loginLink");
+if (navUser && loginLink) {
+  loginLink.textContent = navUser.username;
+  loginLink.href = "profile.html";
+}
 
 function init(){
   scene = new THREE.Scene();
@@ -139,7 +159,16 @@ function resizePreview(){
 }
 
 function createMesh(data){
-  const geo = new THREE.BoxGeometry(data.w, data.h, data.d);
+  let geo;
+
+  if (data.type === "seat") {
+    geo = new THREE.BoxGeometry(data.w, 0.6, data.d);
+  } else if (data.type === "button") {
+    geo = new THREE.BoxGeometry(data.w, 0.3, data.d);
+  } else {
+    geo = new THREE.BoxGeometry(data.w, data.h, data.d);
+  }
+
   const mat = new THREE.MeshStandardMaterial({color:data.color});
   const mesh = new THREE.Mesh(geo,mat);
 
@@ -150,24 +179,40 @@ function createMesh(data){
 }
 
 function addBlock(){
-  const block = {
+  addObject("block");
+}
+
+function addObject(type){
+  const colors = {
+    block:"green",
+    button:"orange",
+    seat:"blue",
+    spawn:"white"
+  };
+
+  const obj = {
+    id:"obj_" + Date.now() + "_" + Math.floor(Math.random() * 9999),
+    type:type,
+    name:type.charAt(0).toUpperCase() + type.slice(1),
     x:0,
     y:0.5,
     z:0,
-    w:4,
-    h:1,
-    d:4,
-    color:"green",
-    script:"normal",
+    w:type === "button" ? 2 : 4,
+    h:type === "button" ? 0.3 : 1,
+    d:type === "button" ? 2 : 4,
+    color:colors[type] || "green",
+    script:type === "spawn" ? "spawn" : "normal",
+    scripts:[],
     tpTarget:null
   };
 
-  block.mesh = createMesh(block);
-  blocks.push(block);
-  scene.add(block.mesh);
+  obj.mesh = createMesh(obj);
+  blocks.push(obj);
+  scene.add(obj.mesh);
 
-  selected = block;
+  selected = obj;
   updateSelection();
+  updateExplorer();
   saveStudioLocal();
 }
 
@@ -184,6 +229,7 @@ function selectBlock(event){
   if(hits.length){
     selected = hits[0].object.userData.block;
     updateSelection();
+    updateExplorer();
   }
 }
 
@@ -194,10 +240,79 @@ function updateSelection(){
 
   if(selected){
     selected.mesh.material.emissive = new THREE.Color(0x333333);
-    document.getElementById("scriptType").value = selected.script;
+    document.getElementById("scriptType").value = selected.script || "normal";
     document.getElementById("msg").textContent =
-      "Selected block | " + selected.script;
+      "Selected " + (selected.name || "Object") + " | " + (selected.script || "normal");
   }
+}
+
+function updateExplorer(){
+  const explorer = document.getElementById("explorer");
+  explorer.innerHTML = "";
+
+  if (blocks.length === 0) {
+    explorer.innerHTML = "<p>No objects yet.</p>";
+    return;
+  }
+
+  blocks.forEach(b => {
+    const div = document.createElement("div");
+    div.style.padding = "5px";
+    div.style.cursor = "pointer";
+    div.style.borderRadius = "6px";
+    div.style.marginBottom = "4px";
+    div.style.background = selected === b ? "#374151" : "transparent";
+    div.textContent = "📦 " + (b.name || "Object") + " (" + (b.type || "block") + ")";
+
+    div.onclick = () => {
+      selected = b;
+      updateSelection();
+      updateExplorer();
+    };
+
+    explorer.appendChild(div);
+
+    if (Array.isArray(b.scripts)) {
+      b.scripts.forEach(script => {
+        const s = document.createElement("div");
+        s.style.padding = "4px 4px 4px 22px";
+        s.style.cursor = "pointer";
+        s.textContent = "📄 " + script.name;
+
+        s.onclick = () => {
+          selected = b;
+          updateSelection();
+          document.getElementById("msg").textContent =
+            "Selected script: " + script.name + " on " + b.name;
+        };
+
+        explorer.appendChild(s);
+      });
+    }
+  });
+}
+
+function addScriptToSelected(){
+  if(!selected) {
+    document.getElementById("msg").textContent = "Select an object first.";
+    return;
+  }
+
+  if(!Array.isArray(selected.scripts)) {
+    selected.scripts = [];
+  }
+
+  selected.scripts.push({
+    id:"script_" + Date.now(),
+    name:"JSBlock Script",
+    code:"event.touch {\\n  message(Hello from JSBlocks)\\n}"
+  });
+
+  document.getElementById("msg").textContent =
+    "Added JSBlock Script to " + selected.name;
+
+  updateExplorer();
+  saveStudioLocal();
 }
 
 function moveBlock(dx,dy,dz){
@@ -209,13 +324,14 @@ function moveBlock(dx,dy,dz){
 
   selected.mesh.position.set(selected.x,selected.y,selected.z);
   saveStudioLocal();
+  updateExplorer();
 }
 
 function resizeBlock(dw,dh,dd){
   if(!selected) return;
 
   selected.w = Math.max(1,selected.w + dw);
-  selected.h = Math.max(1,selected.h + dh);
+  selected.h = Math.max(0.2,selected.h + dh);
   selected.d = Math.max(1,selected.d + dd);
 
   scene.remove(selected.mesh);
@@ -223,6 +339,7 @@ function resizeBlock(dw,dh,dd){
   scene.add(selected.mesh);
 
   updateSelection();
+  updateExplorer();
   saveStudioLocal();
 }
 
@@ -240,12 +357,14 @@ function setScript(){
   if(selected.script === "checkpoint") selected.color = "brown";
   if(selected.script === "coin") selected.color = "gold";
   if(selected.script === "kill") selected.color = "black";
+  if(selected.script === "spawn") selected.color = "white";
 
   scene.remove(selected.mesh);
   selected.mesh = createMesh(selected);
   scene.add(selected.mesh);
 
   updateSelection();
+  updateExplorer();
   saveStudioLocal();
 }
 
@@ -256,12 +375,16 @@ function deleteBlock(){
   blocks = blocks.filter(b => b !== selected);
   selected = null;
 
-  document.getElementById("msg").textContent = "Deleted block.";
+  document.getElementById("msg").textContent = "Deleted object.";
+  updateExplorer();
   saveStudioLocal();
 }
 
-async function publishGame(){
-  const saveBlocks = blocks.map(b => ({
+function makeSaveBlocks(){
+  return blocks.map(b => ({
+    id:b.id,
+    type:b.type || "block",
+    name:b.name || "Block",
     x:b.x,
     y:b.y,
     z:b.z,
@@ -270,18 +393,22 @@ async function publishGame(){
     d:b.d,
     color:b.color,
     script:b.script,
+    scripts:b.scripts || [],
     tpTarget:b.tpTarget || null
   }));
+}
 
+async function publishGame(){
+  const saveBlocks = makeSaveBlocks();
   const user = JSON.parse(localStorage.getItem("elaybloxUser") || "null");
 
-const game = {
-  name:document.getElementById("gameName").value,
-  description:document.getElementById("gameDesc").value,
-  creator:user ? user.username : "Unknown",
-  creatorId:user ? user.id : null,
-  blocks:saveBlocks
-};
+  const game = {
+    name:document.getElementById("gameName").value,
+    description:document.getElementById("gameDesc").value,
+    creator:user ? user.username : "Unknown",
+    creatorId:user ? user.id : null,
+    blocks:saveBlocks
+  };
 
   const res = await fetch(API + "/publish-block-game", {
     method:"POST",
@@ -300,22 +427,10 @@ const game = {
 }
 
 function saveStudioLocal() {
-  const saveBlocks = blocks.map(b => ({
-    x:b.x,
-    y:b.y,
-    z:b.z,
-    w:b.w,
-    h:b.h,
-    d:b.d,
-    color:b.color,
-    script:b.script,
-    tpTarget:b.tpTarget || null
-  }));
-
   localStorage.setItem("elaybloxStudioSave", JSON.stringify({
     name: document.getElementById("gameName").value,
     description: document.getElementById("gameDesc").value,
-    blocks: saveBlocks
+    blocks: makeSaveBlocks()
   }));
 }
 
@@ -330,6 +445,10 @@ function loadStudioLocal() {
 
   if (Array.isArray(data.blocks)) {
     data.blocks.forEach(block => {
+      block.id = block.id || ("obj_" + Date.now() + "_" + Math.floor(Math.random() * 9999));
+      block.type = block.type || "block";
+      block.name = block.name || "Block";
+      block.scripts = block.scripts || [];
       block.mesh = createMesh(block);
       blocks.push(block);
       scene.add(block.mesh);
