@@ -435,7 +435,16 @@ async function publishGame(){
     body:JSON.stringify(game)
   });
 
-  const data = await res.json();
+  const text = await res.text();
+let data;
+
+try {
+  data = JSON.parse(text);
+} catch {
+  document.getElementById("msg").textContent = text;
+  console.error(text);
+  return;
+}
 
   if(data.success){
     document.getElementById("msg").innerHTML =
