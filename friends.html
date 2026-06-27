@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ElayBlox Friends</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>👥 Friends</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="play.html">Games</a>
+    <a href="studio.html">Studio</a>
+    <a href="friends.html">Friends</a>
+    <a href="profile.html">Profile</a>
+  </nav>
+</header>
+
+<main>
+  <div class="form-box">
+    <h2>Add Friend</h2>
+    <input id="friendName" placeholder="Username">
+    <button onclick="sendRequest()">Send Request</button>
+
+    <hr>
+
+    <h2>Requests</h2>
+    <div id="requests"></div>
+
+    <hr>
+
+    <h2>Your Friends</h2>
+    <div id="friends"></div>
+
+    <p id="msg"></p>
+  </div>
+</main>
+
+<script>
+const API = "https://elayblox-server.onrender.com";
+const user = JSON.parse(localStorage.getItem("elaybloxUser") || "null");
+
+if (!user) {
+  location.href = "login.html";
+}
+
+async function sendRequest() {
+  const res = await fetch(API + "/send-friend-request", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      fromUserId: user.id,
+      toUsername: document.getElementById("friendName").value
+    })
+  });
+
+  const data = await res.json();
+  document.getElementById("msg").textContent =
+    data.success ? "Friend request sent!" : data.error;
+}
+
+async function acceptRequest(fromUserId) {
+  const res = await fetch(API + "/accept-friend-request", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      userId: user.id,
+      fromUserId
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    loadFriends();
+  }
+}
+
+async function loadFriends() {
+  const res = await fetch(API + "/friends/" + user.id);
+  const data = await res.json();
+
+  const requests = document.getElementById("requests");
+  const friends = document.getElementById("friends");
+
+  requests.innerHTML = "";
+  friends.innerHTML = "";
+
+  data.requests.forEach(r => {
+    requests.innerHTML += `
+      <p>
+        ${r.username}
+        <button onclick="acceptRequest('${r.id}')">Accept</button>
+      </p>
+    `;
+  });
+
+  data.friends.forEach(f => {
+    let join = "";
+
+    if (f.currentGameId) {
+      join = `
+        <button onclick="joinFriendGame('${f.currentGameId}')">
+          Join Game
+        </button>
+      `;
+    }
+
+    friends.innerHTML += `
+      <p>
+        ${f.username}
+        ${join}
+      </p>
+    `;
+  });
+}
+
+function joinFriendGame(gameId) {
+  location.href =
+    API + "/play/" + gameId +
+    "?userId=" + encodeURIComponent(user.id) +
+    "&username=" + encodeURIComponent(user.username) +
+    "&avatar=" + encodeURIComponent(user.avatar || "") +
+    "&shirtColor=" + encodeURIComponent(user.shirtColor || "red") +
+    "&skinColor=" + encodeURIComponent(user.skinColor || "peachpuff") +
+    "&pantsColor=" + encodeURIComponent(user.pantsColor || "black");
+}
+
+loadFriends();
+</script>
+</body>
+</html>
