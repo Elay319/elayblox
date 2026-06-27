@@ -37,9 +37,6 @@
 
     <button onclick="register()">
       Register
-      shirtColor: "red",
-      skinColor: "peachpuff",
-      pantsColor: "black"
     </button>
 
     <hr>
@@ -80,18 +77,14 @@ async function register() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          username:
-            document.getElementById(
-              "regUser"
-            ).value,
+body: JSON.stringify({
+  username: document.getElementById("regUser").value,
+  password: document.getElementById("regPass").value,
 
-          password:
-            document.getElementById(
-              "regPass"
-            ).value
-        })
-      }
+  shirtColor: "red",
+  skinColor: "peachpuff",
+  pantsColor: "black"
+})
     );
 
     const data = await res.json();
