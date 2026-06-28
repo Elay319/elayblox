@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ElayBlox Messages</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>💬 Messages</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="play.html">Games</a>
+    <a href="friends.html">Friends</a>
+    <a href="messages.html">Messages</a>
+    <a href="profile.html">Profile</a>
+  </nav>
+</header>
+
+<main>
+  <div class="form-box">
+    <h2>Your Friends</h2>
+    <div id="friends"></div>
+
+    <hr>
+
+    <h2 id="chatTitle">Select a friend</h2>
+    <div id="chatBox" style="background:#111827;padding:10px;border-radius:8px;min-height:220px;max-height:300px;overflow-y:auto"></div>
+
+    <input id="msgInput" placeholder="Type message">
+    <button onclick="sendMessage()">Send</button>
+
+    <p id="msg"></p>
+  </div>
+</main>
+
+<script>
+const API = "https://elayblox-server.onrender.com";
+const user = JSON.parse(localStorage.getItem("elaybloxUser") || "null");
+
+let selectedFriend = null;
+
+if (!user) {
+  location.href = "login.html";
+}
+
+async function loadFriends() {
+  const res = await fetch(API + "/friends/" + user.id);
+  const data = await res.json();
+
+  const friendsDiv = document.getElementById("friends");
+  friendsDiv.innerHTML = "";
+
+  data.friends.forEach(friend => {
+    friendsDiv.innerHTML += `
+      <p>
+        ${friend.username}
+        <button onclick="openChat('${friend.id}', '${friend.username}')">Chat</button>
+      </p>
+    `;
+  });
+}
+
+async function openChat(friendId, friendName) {
+  selectedFriend = {
+    id: friendId,
+    username: friendName
+  };
+
+  document.getElementById("chatTitle").textContent =
+    "Chat with " + friendName;
+
+  await loadMessages();
+}
+
+async function loadMessages() {
+  if (!selectedFriend) return;
+
+  const res = await fetch(
+    API + "/messages/" + user.id + "/" + selectedFriend.id
+  );
+
+  const data = await res.json();
+  const chatBox = document.getElementById("chatBox");
+
+  chatBox.innerHTML = "";
+
+  data.messages.forEach(m => {
+    const mine = m.fromUserId === user.id;
+
+    chatBox.innerHTML += `
+      <p style="text-align:${mine ? "right" : "left"}">
+        <b>${mine ? "You" : selectedFriend.username}:</b>
+        ${m.text}
+      </p>
+    `;
+  });
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function sendMessage() {
+  if (!selectedFriend) {
+    document.getElementById("msg").textContent = "Pick a friend first.";
+    return;
+  }
+
+  const text = document.getElementById("msgInput").value.trim();
+
+  if (!text) return;
+
+  const res = await fetch(API + "/send-message", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      fromUserId: user.id,
+      toUserId: selectedFriend.id,
+      text
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    document.getElementById("msgInput").value = "";
+    await loadMessages();
+  } else {
+    document.getElementById("msg").textContent = data.error || "Message failed";
+  }
+}
+
+setInterval(loadMessages, 3000);
+loadFriends();
+</script>
+</body>
+</html>
