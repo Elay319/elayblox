@@ -129,6 +129,11 @@ socket.on("partyMemberJoined", data => {
 });
 
 loadFriends();
+
+  socket.on("partyMemberLeft", data => {
+  members = members.filter(m => m.userId !== data.userId);
+  renderMembers();
+});
 </script>
 </body>
 </html>
