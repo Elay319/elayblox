@@ -25,7 +25,9 @@ async function loadGames() {
     container.innerHTML = "";
 
     games.forEach(game => {
-      const playLink = `${game.link}?username=${username}&avatar=${avatar}`;
+      const playLink =
+  `${game.link}?userId=${userId}&username=${username}&avatar=${avatar}` +
+  `&shirtColor=${shirtColor}&skinColor=${skinColor}&pantsColor=${pantsColor}`;
 
       container.innerHTML += `
         <div class="game-card">
