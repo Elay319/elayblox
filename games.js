@@ -9,8 +9,13 @@ async function loadGames() {
     const games = await res.json();
 
     const user = JSON.parse(localStorage.getItem("elaybloxUser") || "null");
+
+    const userId = user ? encodeURIComponent(user.id) : "";
     const username = user ? encodeURIComponent(user.username) : "Guest";
     const avatar = user && user.avatar ? encodeURIComponent(user.avatar) : "";
+    const shirtColor = user ? encodeURIComponent(user.shirtColor || "red") : "red";
+    const skinColor = user ? encodeURIComponent(user.skinColor || "peachpuff") : "peachpuff";
+    const pantsColor = user ? encodeURIComponent(user.pantsColor || "black") : "black";
 
     if (!games || games.length === 0) {
       container.innerHTML = "<p>No games yet.</p>";
