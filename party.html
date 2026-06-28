@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ElayBlox Party</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>🎙️ Party</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="play.html">Games</a>
+    <a href="friends.html">Friends</a>
+    <a href="party.html">Party</a>
+    <a href="profile.html">Profile</a>
+  </nav>
+</header>
+
+<main>
+  <div class="form-box">
+    <button onclick="createParty()">Create Party</button>
+
+    <h2>Invite Friend</h2>
+    <select id="friendSelect"></select>
+    <button onclick="inviteFriend()">Invite</button>
+
+    <h2>Party Members</h2>
+    <div id="members"></div>
+
+    <h2>Invites</h2>
+    <div id="invites"></div>
+
+    <p id="msg"></p>
+  </div>
+</main>
+
+<script src="https://elayblox-server.onrender.com/socket.io/socket.io.js"></script>
+<script>
+const API = "https://elayblox-server.onrender.com";
+const socket = io(API);
+const user = JSON.parse(localStorage.getItem("elaybloxUser") || "null");
+
+let currentPartyId = null;
+let members = [];
+
+if (!user) location.href = "login.html";
+
+function showMsg(text) {
+  document.getElementById("msg").textContent = text;
+}
+
+function renderMembers() {
+  document.getElementById("members").innerHTML =
+    members.map(m => "<p>🟢 " + m.username + "</p>").join("");
+}
+
+async function loadFriends() {
+  const res = await fetch(API + "/friends/" + user.id);
+  const data = await res.json();
+
+  const select = document.getElementById("friendSelect");
+  select.innerHTML = "";
+
+  data.friends.forEach(f => {
+    select.innerHTML += `<option value="${f.id}">${f.username}</option>`;
+  });
+}
+
+function createParty() {
+  socket.emit("createParty", {
+    userId: user.id,
+    username: user.username
+  });
+}
+
+function inviteFriend() {
+  if (!currentPartyId) {
+    showMsg("Create a party first.");
+    return;
+  }
+
+  const toUserId = document.getElementById("friendSelect").value;
+
+  socket.emit("inviteToParty", {
+    partyId: currentPartyId,
+    fromUserId: user.id,
+    fromUsername: user.username,
+    toUserId
+  });
+
+  showMsg("Invite sent!");
+}
+
+function acceptInvite(partyId) {
+  currentPartyId = partyId;
+
+  socket.emit("joinParty", {
+    partyId,
+    userId: user.id,
+    username: user.username
+  });
+
+  document.getElementById("invites").innerHTML = "";
+}
+
+socket.on("partyCreated", data => {
+  currentPartyId = data.partyId;
+  members = data.members;
+  renderMembers();
+  showMsg("Party created!");
+});
+
+socket.on("partyInvite", data => {
+  document.getElementById("invites").innerHTML += `
+    <p>
+      ${data.fromUsername} invited you
+      <button onclick="acceptInvite('${data.partyId}')">Accept</button>
+    </p>
+  `;
+});
+
+socket.on("partyMemberJoined", data => {
+  if (!members.find(m => m.userId === data.userId)) {
+    members.push(data);
+  }
+  renderMembers();
+});
+
+loadFriends();
+</script>
+</body>
+</html>
