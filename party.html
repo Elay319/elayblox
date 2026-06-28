@@ -63,6 +63,11 @@ async function loadFriends() {
   const select = document.getElementById("friendSelect");
   select.innerHTML = "";
 
+  if (!data.success) {
+    showMsg(data.error || "Could not load friends.");
+    return;
+  }
+
   data.friends.forEach(f => {
     select.innerHTML += `<option value="${f.id}">${f.username}</option>`;
   });
@@ -75,6 +80,23 @@ function createParty() {
   });
 }
 
+function leaveParty() {
+  if (!currentPartyId) {
+    showMsg("You are not in a party.");
+    return;
+  }
+
+  socket.emit("leaveParty", {
+    partyId: currentPartyId,
+    userId: user.id
+  });
+
+  currentPartyId = null;
+  members = [];
+  renderMembers();
+  showMsg("Left party.");
+}
+
 function inviteFriend() {
   if (!currentPartyId) {
     showMsg("Create a party first.");
@@ -82,6 +104,11 @@ function inviteFriend() {
   }
 
   const toUserId = document.getElementById("friendSelect").value;
+
+  if (!toUserId) {
+    showMsg("No friend selected.");
+    return;
+  }
 
   socket.emit("inviteToParty", {
     partyId: currentPartyId,
@@ -128,12 +155,12 @@ socket.on("partyMemberJoined", data => {
   renderMembers();
 });
 
-loadFriends();
-
-  socket.on("partyMemberLeft", data => {
+socket.on("partyMemberLeft", data => {
   members = members.filter(m => m.userId !== data.userId);
   renderMembers();
 });
+
+loadFriends();
 </script>
 </body>
 </html>
