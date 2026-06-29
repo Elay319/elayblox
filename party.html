@@ -140,6 +140,8 @@ function acceptInvite(partyId) {
 
 socket.on("partyCreated", data => {
   currentPartyId = data.partyId;
+  localStorage.setItem("elaybloxPartyId", currentPartyId);
+
   members = data.members;
   renderMembers();
   showMsg("Party created!");
