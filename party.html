@@ -49,6 +49,7 @@ const socket = io(API);
 const user = JSON.parse(localStorage.getItem("elaybloxUser") || "null");
 
 let currentPartyId = null;
+localStorage.removeItem("elaybloxPartyId");
 let members = [];
 
 if (!user) location.href = "login.html";
