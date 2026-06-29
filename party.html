@@ -128,6 +128,7 @@ function inviteFriend() {
 
 function acceptInvite(partyId) {
   currentPartyId = partyId;
+  localStorage.setItem("elaybloxPartyId", currentPartyId);
 
   socket.emit("joinParty", {
     partyId,
