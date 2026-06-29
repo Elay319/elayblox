@@ -50,7 +50,6 @@ const socket = io(API);
 const user = JSON.parse(localStorage.getItem("elaybloxUser") || "null");
 
 let currentPartyId = null;
-localStorage.removeItem("elaybloxPartyId");
 let members = [];
 
 if (!user) location.href = "login.html";
@@ -99,12 +98,14 @@ function leaveParty() {
     userId: user.id
   });
 
+  localStorage.removeItem("elaybloxPartyId");
+
   currentPartyId = null;
   members = [];
   renderMembers();
+
   showMsg("Left party.");
 }
-
 function inviteFriend() {
   if (!currentPartyId) {
     showMsg("Create a party first.");
