@@ -28,6 +28,10 @@
 </header>
 
 <main>
+  <div class="form-box">
+  <h2>💚 Wallet</h2>
+  <p>ElayBux: <b id="elaybuxAmount">Loading...</b></p>
+</div>
 
   <section class="hero">
     <h2>Make and play 3D block games</h2>
@@ -57,48 +61,56 @@
 </main>
 
 <script>
-const user =
-JSON.parse(
-localStorage.getItem(
-"elaybloxUser"
-));
+const API = "https://elayblox-server.onrender.com";
 
-const accountBar =
-document.getElementById(
-"accountBar"
-);
+async function loadWallet() {
+  if (!user) {
+    document.getElementById("elaybuxAmount").textContent = "Login first";
+    return;
+  }
 
-if(user){
+  try {
+    const res = await fetch(API + "/wallet/" + user.id);
+    const data = await res.json();
 
-  accountBar.innerHTML = `
-    Logged in as
-    <b>${user.username}</b>
-
-    <button onclick="logout()">
-      Logout
-    </button>
-  `;
-
-}else{
-
-  accountBar.innerHTML = `
-    <a href="login.html">
-      Login
-    </a>
-  `;
+    if (data.success) {
+      document.getElementById("elaybuxAmount").textContent = data.elaybux;
+    } else {
+      document.getElementById("elaybuxAmount").textContent = "Error";
+    }
+  } catch (err) {
+    document.getElementById("elaybuxAmount").textContent = "Server Offline";
+    console.error(err);
+  }
 }
 
-function logout(){
-
-  localStorage.removeItem(
-    "elaybloxUser"
-  );
-
-  location.reload();
-}
+loadWallet();
 </script>
 
 <script src="games.js"></script>
+
+<script>
+const API = "https://elayblox-server.onrender.com";
+const user = JSON.parse(localStorage.getItem("elaybloxUser") || "null");
+
+async function loadWallet() {
+  if (!user) {
+    document.getElementById("elaybuxAmount").textContent = "Login first";
+    return;
+  }
+
+  const res = await fetch(API + "/wallet/" + user.id);
+  const data = await res.json();
+
+  if (data.success) {
+    document.getElementById("elaybuxAmount").textContent = data.elaybux;
+  } else {
+    document.getElementById("elaybuxAmount").textContent = "Error";
+  }
+}
+
+loadWallet();
+</script>
 
 </body>
 </html>
